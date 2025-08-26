@@ -1,0 +1,16 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE PromoteOldUnfinishedTodos
+
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+    UPDATE TodoItems
+	SET Priority = 3
+	WHERE Priority <> 3 AND DATEDIFF(DAY, CreatedAt, GETDATE()) > 7 AND IsDone = 0
+END
+GO
