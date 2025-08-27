@@ -11,12 +11,24 @@ namespace TodoWpfClient.API
 
         public ApiClientBase(string apiUrl)
         {
+            if (string.IsNullOrWhiteSpace(apiUrl)) 
+            {  
+                throw new ArgumentNullException(nameof(apiUrl));
+            }
+
             _apiUrl = apiUrl;
+
+            HttpClient = new HttpClient()
+            {
+                BaseAddress = new Uri(_apiUrl)
+            };
+
+            HttpClient.Timeout = TimeSpan.FromSeconds(10);
         }
 
         protected async Task<TReturn> GetAsync<TReturn>(string relativeUri)
         {
-            HttpResponseMessage res = await HttpClient.GetAsync($"{_apiUrl}/{relativeUri}");
+            HttpResponseMessage res = HttpClient.GetAsync(relativeUri, HttpCompletionOption.ResponseHeadersRead).Result;
 
             if (res.IsSuccessStatusCode)
             {
@@ -35,7 +47,7 @@ namespace TodoWpfClient.API
 
         protected async Task<TReturn> PostAsync<TReturn, TRequest>(string relativeUri, TRequest request)
         {
-            HttpResponseMessage res = await HttpClient.PostAsJsonAsync<TRequest>($"{_apiUrl}/{relativeUri}", request);
+            HttpResponseMessage res = HttpClient.PostAsJsonAsync<TRequest>(relativeUri, request).Result;
             if (res.IsSuccessStatusCode)
             {
                 if (res.StatusCode == HttpStatusCode.NoContent)
@@ -53,7 +65,7 @@ namespace TodoWpfClient.API
         
         protected async Task PutAsync<TRequest>(string relativeUri, TRequest request)
         {
-            HttpResponseMessage res = await HttpClient.PutAsJsonAsync<TRequest>($"{_apiUrl}/{relativeUri}", request);
+            HttpResponseMessage res = HttpClient.PutAsJsonAsync<TRequest>($"{_apiUrl}/{relativeUri}", request).Result;
             if (res.IsSuccessStatusCode)
             {
                 return;

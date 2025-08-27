@@ -1,7 +1,6 @@
 using TodoDAL;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-WebApplication app = builder.Build();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -11,6 +10,8 @@ builder.WebHost.ConfigureKestrel(options =>
         listenOptions.UseHttps();
     });
 });
+
+WebApplication app = builder.Build();
 
 app.MapGet("/getTodos", async () =>
 {

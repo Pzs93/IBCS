@@ -44,8 +44,8 @@ public partial class App : Application
 
     private void StartApi()
     {
-        string apiPath = Path.Combine("..", "TodoAPI", "bin", "Debug", "net8.0", "TodoAPI.exe");
-        
+        string apiPath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "TodoAPI", "TodoAPI.exe");
+
         _apiProcess = new Process
         {
             StartInfo = new ProcessStartInfo

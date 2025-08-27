@@ -1,31 +1,27 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Windows.Input;
 
 namespace TodoWpfClient.Commands
 {
     public class RelayCommand : ICommand
     {
-        private readonly Action<object?> _execute;
-        private readonly Func<object?, bool>? _canExecute;
-        public event EventHandler? CanExecuteChanged;
-        public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
+        private readonly Action _execute;
+        private readonly Func<bool> _canExecute;
+
+        public RelayCommand(Action execute, Func<bool> canExecute = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
-        public bool CanExecute(object? parameter)
+        public event EventHandler CanExecuteChanged
         {
-            return _canExecute == null || _canExecute(parameter);
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
-        public void Execute(object? parameter)
-        {
-            _execute(parameter);
-        }
+        public bool CanExecute(object parameter) => _canExecute?.Invoke() ?? true;
 
-        public void RaiseCanExecuteChanged()
-        {
-            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
-        }
+        public void Execute(object parameter) => _execute();
     }
 }

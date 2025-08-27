@@ -17,9 +17,9 @@
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Margin="10" HorizontalAlignment="Left">
             <Button Content="Add Todo" Width="100" Height="30" Margin="0,0,10,0"
-                    Click="AddTodoButton_Click"/>
+                    Command="{Binding AddTodoCommand}"/>
             <Button Content="Save" Width="100" Height="30"
-                    Click="SaveButton_Click"/>
+                    Command="{Binding SaveCommand}"/>
         </StackPanel>
         <ListView Grid.Row="1" ItemsSource="{Binding TodoItems}" SelectedItem="{Binding SelectedTodoItem, Mode=TwoWay}">
             <ListView.ItemTemplate>
