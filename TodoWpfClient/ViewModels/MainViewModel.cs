@@ -12,46 +12,80 @@ namespace TodoWpfClient.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private ObservableCollection<TodoItemViewModel> _todoItems;
-        public ObservableCollection<TodoItemViewModel> TodoItems
-        {
-            get => _todoItems;
-            set
-            {
-                _todoItems = value;
-                OnPropertyChanged();
-            }
-        }
-
-        private TodoItemViewModel? _selectedTodoItem;
-        public TodoItemViewModel? SelectedTodoItem
-        {
-            get => _selectedTodoItem;
-            set
-            {
-                _selectedTodoItem = value;
-                OnPropertyChanged();
-            }
-        }
-
         private readonly TodoApiClient _apiClient;
 
+        private ObservableCollection<TodoItemViewModel> _todoItemViewModels;
+        public ObservableCollection<TodoItemViewModel> TodoItemViewModels
+        {
+            get => _todoItemViewModels;
+            set
+            {
+                _todoItemViewModels = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private TodoItemViewModel _selectedTodoItemViewModel;
+        public TodoItemViewModel SelectedTodoItemViewModel
+        {
+            get => _selectedTodoItemViewModel;
+            set
+            {
+                _selectedTodoItemViewModel = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand AddTodoCommand { get; }
-        public ICommand SaveCommand { get; }
 
         public MainViewModel(IEnumerable<TodoItemViewModel> items, TodoApiClient apiClient)
         {
-            _todoItems = new ObservableCollection<TodoItemViewModel>(items);
+            _todoItemViewModels = new ObservableCollection<TodoItemViewModel>(items);
             _apiClient = apiClient;
-            SelectedTodoItem = _todoItems.FirstOrDefault();
+            SelectedTodoItemViewModel = _todoItemViewModels.FirstOrDefault();
 
             AddTodoCommand = new RelayCommand(ExecuteAddTodo);
-            SaveCommand = new RelayCommand(ExecuteSaveAsync);
+
+            foreach (TodoItemViewModel item in _todoItemViewModels)
+            {
+                if (item != null)
+                {
+                    SubscribeToTodoItemChanges(item);
+                }
+            }
+        }
+
+        private async void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is TodoItemViewModel todoVm)
+            {
+                if (e.PropertyName == nameof(TodoItemViewModel.IsDone) && todoVm.TodoItem.IsDone)
+                {
+                    await HandleTodoItemCompleted(todoVm);
+                }
+            }
+        }
+
+        private async Task HandleTodoItemCompleted(TodoItemViewModel todoItem)
+        {
+            try
+            {
+                await _apiClient.MarkAsDone(todoItem.TodoItem.Id);
+                todoItem.PropertyChanged -= Item_PropertyChanged;
+
+                TodoItemViewModels.Remove(todoItem);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to update todo item: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                todoItem.TodoItem.IsDone = false;
+            }
         }
 
         private void ExecuteAddTodo()
         {
-            var dialog = new Window
+            Window dialog = new Window
             {
                 Title = "Add New Todo",
                 Content = new NewTodoControl(),
@@ -61,15 +95,18 @@ namespace TodoWpfClient.ViewModels
                 ResizeMode = ResizeMode.NoResize
             };
 
-            var newTodoControl = (NewTodoControl)dialog.Content;
+            NewTodoControl newTodoControl = (NewTodoControl)dialog.Content;
             newTodoControl.TodoItemCreated += async (s, todoItem) =>
             {
                 dialog.DialogResult = true;
                 dialog.Close();
 
-                var added = await _apiClient.AddTodoItem(todoItem);
-                var vm = new TodoItemViewModel(added);
-                TodoItems.Add(vm);
+                TodoItem added = await _apiClient.AddTodoItem(todoItem);
+                TodoItemViewModel vm = new TodoItemViewModel(added);
+                SubscribeToTodoItemChanges(vm);
+                TodoItemViewModels.Add(vm);
+
+                TodoItemViewModels = new ObservableCollection<TodoItemViewModel>(TodoItemViewModels.OrderBy(t => t.TodoItem.Priority).ThenBy(t => t.TodoItem.CreatedAt));
             };
 
             newTodoControl.DialogCancelled += (s, args) =>
@@ -81,23 +118,10 @@ namespace TodoWpfClient.ViewModels
             dialog.ShowDialog();
         }
 
-        private async void ExecuteSaveAsync()
+        private void SubscribeToTodoItemChanges(TodoItemViewModel item)
         {
-            List<TodoItemViewModel> completedItems = TodoItems.Where(todoVm => todoVm.TodoItem.IsDone).ToList();
-            
-            foreach (var todoVm in completedItems)
-            {
-                await _apiClient.MarkAsDone(todoVm.TodoItem.Id);
-                TodoItems.Remove(todoVm);
-            }
-
-            if (completedItems.Any())
-            {
-                MessageBox.Show($"{completedItems.Count} completed todos have been saved and removed.", 
-                    "Save", 
-                    MessageBoxButton.OK, 
-                    MessageBoxImage.Information);
-            }
+            item.PropertyChanged -= Item_PropertyChanged;
+            item.PropertyChanged += Item_PropertyChanged;
         }
 
         #region INotifyPropertyChanged Implementation

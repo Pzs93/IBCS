@@ -26,7 +26,6 @@ app.MapPost("/addTodo", async (TodoItem item) =>
     TodoDbProvider provider = new();
     TodoItem addedItem = await provider.AddTodo(item);
 
-    //return Results.Created($"/getTodo?id={item.Id}", item);
     return Results.Ok(addedItem);
 });
 

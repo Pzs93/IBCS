@@ -5,11 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TodoWpfClient"
         xmlns:controls="clr-namespace:TodoWpfClient.Controls"
+        xmlns:viewmodels="clr-namespace:TodoWpfClient.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Window.DataContext>
-        <Binding Path="ViewModel" RelativeSource="{RelativeSource Self}" />
-    </Window.DataContext>
+        Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{ d:DesignInstance viewmodels:MainViewModel }">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,10 +17,8 @@
         <StackPanel Orientation="Horizontal" Margin="10" HorizontalAlignment="Left">
             <Button Content="Add Todo" Width="100" Height="30" Margin="0,0,10,0"
                     Command="{Binding AddTodoCommand}"/>
-            <Button Content="Save" Width="100" Height="30"
-                    Command="{Binding SaveCommand}"/>
         </StackPanel>
-        <ListView Grid.Row="1" ItemsSource="{Binding TodoItems}" SelectedItem="{Binding SelectedTodoItem, Mode=TwoWay}">
+        <ListView Grid.Row="1" ItemsSource="{Binding TodoItemViewModels}" SelectedItem="{Binding SelectedTodoItemViewModel}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="8">
@@ -34,7 +31,7 @@
                                 <TextBlock Text=" | Created: " Margin="8,0,0,0"/>
                                 <TextBlock Text="{Binding TodoItem.CreatedAt, StringFormat={}{0:g}}"/>
                             </StackPanel>
-                            <CheckBox Content="Completed" IsChecked="{Binding TodoItem.IsDone, Mode=TwoWay}" Margin="0,4,0,0"/>
+                            <CheckBox Content="Completed" IsChecked="{Binding IsDone}" Margin="0,4,0,0"/>
                         </StackPanel>
                     </Border>
                 </DataTemplate>

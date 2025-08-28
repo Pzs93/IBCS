@@ -27,7 +27,7 @@ namespace TodoWpfClient.Controls
             {
                 Name = NameTextBox.Text.Trim(),
                 Description = DescriptionTextBox.Text.Trim(),
-                Priority = (byte)(PriorityComboBox.SelectedIndex),
+                Priority = (byte)(PriorityComboBox.SelectedIndex + 1),
                 CreatedAt = DateTime.Now,
                 IsDone = false
             };
