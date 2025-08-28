@@ -1,17 +1,17 @@
 using TodoDAL;
 
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-app.MapGet("/", () => "Hello World!");
-
-app.MapGet("/addTodo", async (string name, string description, byte priority) =>
+builder.WebHost.ConfigureKestrel(options =>
 {
-    TodoDbProvider provider = new();
-    TodoItem item = await provider.AddTodo(name, description, priority);
-
-    return Results.Created($"/getTodo?id={item.Id}", item);
+    options.ListenLocalhost(5005);
+    options.ListenLocalhost(7005, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
 });
+
+WebApplication app = builder.Build();
 
 app.MapGet("/getTodos", async () =>
 {
@@ -21,7 +21,15 @@ app.MapGet("/getTodos", async () =>
     return Results.Ok(items);
 });
 
-app.MapGet("/markAsDone", async (int id) =>
+app.MapPost("/addTodo", async (TodoItem item) =>
+{
+    TodoDbProvider provider = new();
+    TodoItem addedItem = await provider.AddTodo(item);
+
+    return Results.Ok(addedItem);
+});
+
+app.MapPut("/markAsDone", async (int id) =>
 {
     TodoDbProvider provider = new();
     bool result = await provider.MarkAsDone(id);

@@ -1,0 +1,41 @@
+﻿<Window x:Class="TodoWpfClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TodoWpfClient"
+        xmlns:controls="clr-namespace:TodoWpfClient.Controls"
+        xmlns:viewmodels="clr-namespace:TodoWpfClient.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{ d:DesignInstance viewmodels:MainViewModel }">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Margin="10" HorizontalAlignment="Left">
+            <Button Content="Add Todo" Width="100" Height="30" Margin="0,0,10,0"
+                    Command="{Binding AddTodoCommand}"/>
+        </StackPanel>
+        <ListView Grid.Row="1" ItemsSource="{Binding TodoItemViewModels}" SelectedItem="{Binding SelectedTodoItemViewModel}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="8">
+                        <StackPanel>
+                            <TextBlock Text="{Binding TodoItem.Name}" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{Binding TodoItem.Description}" TextWrapping="Wrap" Foreground="Gray"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="Priority: " FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding TodoItem.Priority}"/>
+                                <TextBlock Text=" | Created: " Margin="8,0,0,0"/>
+                                <TextBlock Text="{Binding TodoItem.CreatedAt, StringFormat={}{0:g}}"/>
+                            </StackPanel>
+                            <CheckBox Content="Completed" IsChecked="{Binding IsDone}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Window>
